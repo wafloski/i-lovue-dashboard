@@ -34,4 +34,7 @@ export default {
   deletePost(id) {
     return this.execute('delete', `/posts/${id}`);
   },
+  getImages() {
+    return this.execute('get', '/images');
+  },
 };

@@ -42,6 +42,31 @@
                 </b-card>
             </b-col>
         </b-row>
+        <b-row>
+            <b-col>
+                <table class="table table-striped">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Updated At</th>
+                        <th>&nbsp;</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr v-for="image in images" :key="image.id">
+                        <td>{{ image.id }}</td>
+                        <td>{{ image.name }}</td>
+                        <td><img :src="'data:image/png;charset=utf-8;base64,' + imageblob(image.data)"></td>
+                        <td class="text-right">
+                            <!--<a href="#" @click.prevent="populatePostToEdit(image)">Edit</a> - -->
+                            <!--<a href="#" @click.prevent="deletePost(image.id)">Delete</a>-->
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </b-col>
+        </b-row>
     </div>
 </template>
 
@@ -54,10 +79,12 @@
         loading: false,
         posts: [],
         model: {},
+        images: [],
       };
     },
     async created() {
       this.refreshPosts();
+      this.refreshImages();
     },
     methods: {
       async refreshPosts() {
@@ -86,6 +113,13 @@
           await api.deletePost(id);
           await this.refreshPosts();
         }
+      },
+      async refreshImages() {
+        this.loading = true;
+        this.images = await api.getImages();
+      },
+      imageblob(data) {
+        return URL.createObjectURL(data);
       },
     },
   };

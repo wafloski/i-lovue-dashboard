@@ -4,14 +4,15 @@ const bodyParser = require('body-parser');
 const Sequelize = require('sequelize');
 const epilogue = require('epilogue'); // to create the dynamic REST resource for our Post model
 const OktaJwtVerifier = require('@okta/jwt-verifier');
-const mysql = require('mysql');
+// const mysql = require('mysql');
+// const fs = require('fs');
 
 const oktaJwtVerifier = new OktaJwtVerifier({
   clientId: '0oaj1pljm9eLXDqWy0h7',
   issuer: 'https://dev-499317.oktapreview.com/oauth2/default',
 });
 
-let app = express();
+const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
@@ -24,7 +25,7 @@ app.use((req, res, next) => {
   const parts = req.headers.authorization.trim().split(' ');
   const accessToken = parts.pop();
   oktaJwtVerifier.verifyAccessToken(accessToken)
-    .then(jwt => {
+    .then((jwt) => {
       req.user = {
         uid: jwt.claims.uid,
         email: jwt.claims.sub,
@@ -34,7 +35,7 @@ app.use((req, res, next) => {
     .catch(next); // jwt did not verify!
 });
 
-// For ease of this tutorial, we are going to use SQLite to limit dependencies
+
 const database = new Sequelize('wafloski_test1name', 'wafloski_test1name', 'Test1pass', {
   host: 'sql.wafloski.nazwa.pl',
   port: 3306,
@@ -58,8 +59,20 @@ const Post = database.define('posts', {
   },
 });
 
+const Image = database.define('images', {
+  type: {
+    type: Sequelize.STRING,
+  },
+  name: {
+    type: Sequelize.STRING,
+  },
+  data: {
+    type: Sequelize.BLOB('long'),
+  },
+});
+
 epilogue.initialize({
-  app: app,
+  app,
   sequelize: database,
 });
 
@@ -68,9 +81,14 @@ const userResource = epilogue.resource({
   endpoints: ['/posts', '/posts/:id'],
 });
 
+const imageResource = epilogue.resource({
+  model: Image,
+  endpoints: ['/images', '/images/:id'],
+});
+
 // Resets the database and launches the express app on :8081
 database
-  .sync({ force: true })
+  .sync()
   .then(() => {
     app.listen(8081, () => {
       console.log('listening to port localhost:8081');
